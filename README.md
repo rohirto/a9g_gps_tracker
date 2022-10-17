@@ -20,7 +20,8 @@ Vehicle Tracking Project -> Get GPS Data from device and send it to cloud. The m
 
 ## Application Diagram
 
-![m66flow](https://user-images.githubusercontent.com/16812616/196234071-8ecfc86d-a6cd-44a0-b4ed-273e10223aaf.png)
+![m66flow](https://user-images.githubusercontent.com/16812616/196267748-8fb0ad34-0dc2-4109-8bcd-6580fd85f4d2.png)
+
 
 
 ## Documentation 
