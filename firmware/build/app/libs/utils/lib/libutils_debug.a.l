@@ -1,0 +1,10 @@
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/api_debug.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/assert.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/buffer.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/hal_gpio.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/log2.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/log2f.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/math.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/ntp.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/stdlib.o
+C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/utils/obj/debug/time.o

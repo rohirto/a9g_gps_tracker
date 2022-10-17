@@ -1,0 +1,23 @@
+#############################################
+# Target component definitions
+#############################################
+FLSH_MODEL:=           flsh_spi32m
+#############################################
+# Flash Mapping
+#############################################
+FLASH_SIZE:=           0x400000
+RAM_SIZE:=             0x00265000
+RAM_PHY_SIZE:=         0x00400000
+CALIB_BASE:=           0x3FA000
+FACT_SETTINGS_BASE:=   0x3FE000
+CODE_BASE:=            0x00000000
+USER_DATA_BASE:=       0x00361000
+USER_DATA_SIZE:=       0x00099000
+ROMU_FLASH_LAYOUT:=    
+USER_BASE:=            0x00240000
+USER_SIZE:=            0x00100000
+
+#############################################
+# others
+#############################################
+

@@ -1,0 +1,68 @@
+-- System Version : WINDOWS
+---------------------------------------------------
+
+
+[MAKE]  init
+
+[AR]   libinit_debug.a
+ 
+
+
+[MAKE]  libs
+
+
+[MAKE]  libs/gps
+
+
+[MAKE]  libs/gps/minmea
+
+[AR]   libminmea_debug.a
+ 
+
+[AR]   libgps_debug.a
+        |
+         -- libminmea_debug.a
+ 
+
+
+[MAKE]  libs/utils
+
+[AR]   libutils_debug.a
+ 
+
+
+[MAKE]  libs/cjson
+
+[AR]   libcjson_debug.a
+ 
+
+[AR]   liblibs_debug.a
+        |
+         -- libgps_debug.a
+        |
+         -- libutils_debug.a
+        |
+         -- libcjson_debug.a
+ 
+
+
+[MAKE]  app
+
+[AR]   libapp_debug.a
+ 
+
+
+-----------------------------------------------
+[LDGEN]             >>> cust.ld
+[LD] 1:C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app//app.elf 2:--oformat=elf32-littlemips 5:-just-symbols C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/platform/chip/rom/8955/lib/mem_bridge_rom_CHIP.elf 6: C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/cust.ld 7:--gc-sections  -LC:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/init/lib   -LC:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/libs/lib   -LC:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app/app/lib      --start-group   -linit_debug  -llibs_debug  -lapp_debug --end-group -LC:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/platform/lib/gcc/mips-elf/4.4.2 -lgcc  --warn-common  --error-unresolved-symbols  8:C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/build/app//app.map  end1             app.elf
+[ElfCombine]        Elf binary & map file
+
+[GEN]               strip platform symbol
+                    |
+                     --C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/platform/compilation/platform_symbols_to_strip
+
+[SREC]              app.srec for flash/romulator
+[LOD]               C:/Users/rohir/OneDrive/Documents/a9g/a9g_gps_tracker/a9g_gps_tracker/firmware/hex/app/app_flash.lod
+[LODCOMBINE]        Combine with Platform lod
+[LODCOMBINE]        Combine sucessful
+
