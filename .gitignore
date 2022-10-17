@@ -1,0 +1,5 @@
+#ignore all files in Hex folder
+firmware/hex/
+
+#ignore all files in build folder
+firmware/build/
