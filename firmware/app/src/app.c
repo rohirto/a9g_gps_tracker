@@ -1,226 +1,133 @@
-#include "api_hal_gpio.h"
-#include "stdint.h"
+/*
+ * @File  demo_gpsSimpleTestn.c
+ * @Info:
+ *      Basic and documented code that print messages
+ *  int the tracer and blink the leds in the chip
+ * @More info: https://ai-thinker-open.github.io/GPRS_C_SDK_DOC/en/c-sdk/first-code.html
+ * 
+ * @Author: Ricx8 
+ * @Date: 2018-12-13 14:40:43 
+ * @Last Modified by: Ricx8
+ * @Last Modified time: 2019-01-16 02:25:40
+ */
+
 #include "stdbool.h"
+#include "stdint.h"
+
+#include <api_gps.h>
+
+#include "api_os.h"
 #include "api_debug.h"
-#include "api_os.h"
-#include "api_hal_pm.h"
-#include "api_os.h"
 #include "api_event.h"
+#include "api_hal_gpio.h"
+#include "gps_parse.h"
+#include "gps.h"
 
 
-#define MAIN_TASK_STACK_SIZE    (1024 * 2)
-#define MAIN_TASK_PRIORITY      0 
-#define MAIN_TASK_NAME         "MAIN Test Task"
+#define MAIN_TASK_STACK_SIZE    (2048 * 2)
+#define MAIN_TASK_PRIORITY      0
+#define MAIN_TASK_NAME          "Main Test Task"
 
-#define TEST_TASK_STACK_SIZE    (1024 * 2)
-#define TEST_TASK_PRIORITY      1
-#define TEST_TASK_NAME         "GPIO Test Task"
+#define SECOND_TASK_STACK_SIZE    (2048 * 2)
+#define SECOND_TASK_PRIORITY      1
+#define SECOND_TASK_NAME          "Second Test Task"
 
 static HANDLE mainTaskHandle = NULL;
 static HANDLE secondTaskHandle = NULL;
 
+//convert unit ddmm.mmmm to degree(°) 
+double convertCoordinates(double nmeaValue, double nmeaScale){
+    double  tmp = nmeaValue/nmeaScale/100.0;
+    int     dd  = (int)tmp;
+    double  mm  = (tmp - dd) * 100.0 / 60.0;
 
-#if 0
+    tmp = dd+mm;
 
-void OnPinFalling(GPIO_INT_callback_param_t* param)
-{
-    Trace(1,"OnPinFalling");
-    switch(param->pin)
-    {
-        case GPIO_PIN2:
-            Trace(1,"gpio2 detect falling edge!");
-            GPIO_LEVEL statusNow;
-            GPIO_Get(GPIO_PIN2,&statusNow);
-            Trace(1,"gpio2 status now:%d",statusNow);
+    if (tmp < 0) tmp*=-1;
+
+    return(tmp);
+}
+
+void EventDispatch(API_Event_t* pEvent){
+    switch(pEvent->id){
+        case API_EVENT_ID_GPS_UART_RECEIVED:
+            //Trace(1,"#LOG: received GPS data,length:%d, data:%s",pEvent->param1,pEvent->pParam1);
+            GPS_Update(pEvent->pParam1,pEvent->param1);
             break;
         default:
             break;
     }
 }
-void GPIO_TestTask()
-{
-    static GPIO_LEVEL ledBlueLevel = GPIO_LEVEL_LOW;
-    GPIO_config_t gpioLedBlue;
-    gpioLedBlue.mode         = GPIO_MODE_OUTPUT;
-    gpioLedBlue.pin          = GPIO_PIN27;
-    gpioLedBlue.defaultLevel = GPIO_LEVEL_LOW;
-    
-    GPIO_config_t gpioLedBlue2 = {
-        .mode         = GPIO_MODE_OUTPUT,
-        .pin          = GPIO_PIN28,
-        .defaultLevel = GPIO_LEVEL_LOW
-    };
 
-    GPIO_config_t gpioINT = {
-        .mode               = GPIO_MODE_INPUT_INT,
-        .pin                = GPIO_PIN2,
-        .defaultLevel       = GPIO_LEVEL_LOW,
-        .intConfig.debounce = 50,
-        .intConfig.type     = GPIO_INT_TYPE_FALLING_EDGE,
-        .intConfig.callback = OnPinFalling
-    };
-    GPIO_config_t gpioInput = {
-        .mode               = GPIO_MODE_INPUT,
-        .pin                = GPIO_PIN30,
-        .defaultLevel       = GPIO_LEVEL_HIGH,
-        .intConfig.debounce = 0,
-        .intConfig.type     = GPIO_INT_TYPE_MAX,
-        .intConfig.callback = NULL
-    };
-    Trace(1,"GPIO Test main");
-    GPIO_Init(gpioLedBlue);
-    GPIO_Init(gpioLedBlue2);
-    GPIO_Init(gpioInput);
-    GPIO_Init(gpioINT);
+// Secondary task where I'm going to execute everything.
+void SecondTask(void *pData){
 
-    while(1)
-    {
-        GPIO_LEVEL status=0;
-        ledBlueLevel = (ledBlueLevel==GPIO_LEVEL_HIGH)?GPIO_LEVEL_LOW:GPIO_LEVEL_HIGH;
-        Trace(1,"ledBlueLevel toggle:%d",ledBlueLevel);
-        GPIO_SetLevel(gpioLedBlue,ledBlueLevel);        //Set level
-        GPIO_SetLevel(gpioLedBlue2,ledBlueLevel);        //Set level
-        GPIO_GetLevel(gpioInput,&status);
-        Trace(1,"GPIO30 status:%d",status);
-        OS_Sleep(1000);                                  //Sleep 500 ms
-    }
-}
+    GPS_Info_t* gpsInfo = Gps_GetInfo();
+    uint8_t buffer[300];
 
-#endif
-
-#if 1
-int aaaa=0,bbbb=0,cccc=123;
-void GPIO_TestTask()
-{
-    static GPIO_LEVEL ledBlueLevel = GPIO_LEVEL_LOW;
-
+    // GPIO configuration
     GPIO_config_t gpioLedBlue = {
         .mode         = GPIO_MODE_OUTPUT,
-        .pin          = GPIO_PIN25,
+        .pin          = GPIO_PIN27,
         .defaultLevel = GPIO_LEVEL_LOW
     };
 
-    for(uint8_t i=0;i<POWER_TYPE_MAX;++i)
-        PM_PowerEnable(i,true);
+    GPIO_Init(gpioLedBlue); // Initialize GPIO
 
-    for(int i=0;i<GPIO_PIN_MAX;++i)
-    {
-        gpioLedBlue.pin = i;
-        GPIO_Init(gpioLedBlue);
+    GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_HIGH);
+    OS_Sleep(250);
+    GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_LOW);
+    OS_Sleep(250);
+    GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_HIGH);
+    OS_Sleep(250);
+    GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_LOW);
+    OS_Sleep(2000);
+
+    Trace(1, "#LOG: init gps...");
+
+    // Open GPS hardware(UART2 open either)
+    GPS_Init();
+    GPS_Open(NULL);
+
+    if(!GPS_GetVersion(buffer,150))
+        Trace(1,"#LOG: get gps firmware version fail");
+    else
+        Trace(1,"#LOG: gps firmware version:%s",buffer);
+
+    // Wait for gps start up, or gps will not response command
+    while(gpsInfo->rmc.latitude.value == 0){
+        GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_HIGH);
+        OS_Sleep(500);
+        GPIO_SetLevel(gpioLedBlue, GPIO_LEVEL_LOW);
+        OS_Sleep(500);
+
+        Trace(1, "#LOG: GPS starting up...");
     }
-    
-    while(1)
-    {
-        ledBlueLevel = (ledBlueLevel==GPIO_LEVEL_HIGH)?GPIO_LEVEL_LOW:GPIO_LEVEL_HIGH;
-        Trace(1,"ledBlueLevel toggle:%d",ledBlueLevel);
-        Trace(1,"aaaa:%d",aaaa);
-        Trace(1,"bbbb:%d",bbbb);
-        Trace(1,"cccc:%d",cccc);
-        
-        for(int i=0;i<GPIO_PIN_MAX;++i)
-        {
-            gpioLedBlue.pin = i;
-            GPIO_SetLevel(gpioLedBlue,ledBlueLevel);        //Set level
-        }
-        
-        OS_Sleep(500);                                  //Sleep 500 ms
-    }
-}
 
-#endif
+    while(1){
 
+        // Convert the coordinates
+        double latitude =  convertCoordinates(gpsInfo->rmc.latitude.value, gpsInfo->rmc.latitude.scale);
+        double longitude =  convertCoordinates(gpsInfo->rmc.longitude.value, gpsInfo->rmc.longitude.scale);
 
-#if 0
-
-void OnPinFalling(GPIO_INT_callback_param_t* param)
-{
-    Trace(1,"OnPinFalling");
-    Trace(1,"gpio detect falling edge!pin:%d",param->pin);
-}
-void GPIO_TestTask()
-{
-    static GPIO_LEVEL ledBlueLevel = GPIO_LEVEL_LOW;
-
-    GPIO_config_t gpioInt = {
-        .mode               = GPIO_MODE_INPUT_INT,
-        .pin                = GPIO_PIN2,
-        .defaultLevel       = GPIO_LEVEL_LOW,
-        .intConfig.debounce = 50,
-        .intConfig.type     = GPIO_INT_TYPE_FALLING_EDGE,
-        .intConfig.callback = OnPinFalling
-    };
-    for(int i=0;i<=7;++i)
-    {
-        gpioInt.pin = i;
-        GPIO_Init(gpioInt);
-    }
-    
-    while(1)
-    {
-        Trace(1,"idle");
-        OS_Sleep(2000);
+        Trace(1, "#LOG: (%f N %f E)", latitude, longitude);
+        OS_Sleep(5000);
     }
 }
 
-#endif
-
-#if 0
-void GPIO_TestTask()
-{
-    static GPIO_LEVEL ledBlueLevel = GPIO_LEVEL_LOW;
-
-    GPIO_config_t gpioLedBlue = {
-        .mode         = GPIO_MODE_OUTPUT,
-        .pin          = GPIO_PIN25,
-        .defaultLevel = GPIO_LEVEL_LOW
-    };
-
-    PM_PowerEnable(POWER_TYPE_LCD,true);
-
-    for(int i=14;i<=18;++i)
-    {
-        gpioLedBlue.pin = i;
-        GPIO_Init(gpioLedBlue);
-    }
-    
-    while(1)
-    {
-        ledBlueLevel = (ledBlueLevel==GPIO_LEVEL_HIGH)?GPIO_LEVEL_LOW:GPIO_LEVEL_HIGH;
-        Trace(1,"ledBlueLevel toggle:%d",ledBlueLevel);
-        Trace(1,"aaaa:%d",aaaa);
-        Trace(1,"bbbb:%d",bbbb);
-        Trace(1,"cccc:%d",cccc);
-        for(int i=14;i<=18;++i)
-        {
-            gpioLedBlue.pin = i;
-            GPIO_SetLevel(gpioLedBlue,ledBlueLevel);        //Set level
-        }
-        OS_Sleep(500);                                  //Sleep 500 ms
-    }
-}
-#endif
-
-
-void EventDispatch(API_Event_t* pEvent)
-{
-    switch(pEvent->id)
-    {
-        default:
-            break;
-    }
-}
-
-void MainTask(void *pData)
-{
+// Main task
+void MainTask(void *pData){
     API_Event_t* event=NULL;
 
-    secondTaskHandle = OS_CreateTask(GPIO_TestTask,
-        NULL, NULL, TEST_TASK_STACK_SIZE, TEST_TASK_PRIORITY, 0, 0, TEST_TASK_NAME);
+    Trace(1, "Test #00002");
 
-    while(1)
-    {
-        if(OS_WaitEvent(mainTaskHandle, (void**)&event, OS_TIME_OUT_WAIT_FOREVER))
-        {
+    // Create another task (secondary task).
+    secondTaskHandle = OS_CreateTask(SecondTask,
+        NULL, NULL, SECOND_TASK_STACK_SIZE, SECOND_TASK_PRIORITY, 0, 0, SECOND_TASK_NAME);
+
+    while(1){
+        // Wait for events from the lower system and is handle in EventDispatch
+        if(OS_WaitEvent(mainTaskHandle, (void**)&event, OS_TIME_OUT_WAIT_FOREVER)){
             EventDispatch(event);
             OS_Free(event->pParam1);
             OS_Free(event->pParam2);
@@ -229,10 +136,10 @@ void MainTask(void *pData)
     }
 }
 
-
-void app_Main()
-{
-    mainTaskHandle = OS_CreateTask(MainTask ,
+// Main entrance
+void app_Main(void){
+    // Create the main task. It will return the pointer os that task.
+    mainTaskHandle = OS_CreateTask(MainTask,
         NULL, NULL, MAIN_TASK_STACK_SIZE, MAIN_TASK_PRIORITY, 0, 0, MAIN_TASK_NAME);
-    OS_SetUserMainHandle(&mainTaskHandle);
+    OS_SetUserMainHandle(&mainTaskHandle); // Set the main handle.
 }
