@@ -17,6 +17,7 @@
 #include "api_socket.h"
 #include "api_network.h"
 #include "api_hal_gpio.h"
+#include "api_hal_watchdog.h"
 
 /**
  * gps tracker, use an open source tracker server traccar:https://www.traccar.org/
@@ -46,6 +47,7 @@ bool networkFlag = false;
 volatile bool falseGPS = true;
 volatile double prev_lat = 0.0;
 volatile double prev_long = 0.0;
+volatile bool motion = false;   //Initially motion not there
 
 #define SYSTEM_STATUS_LED GPIO_PIN27
 #define UPLOAD_DATA_LED   GPIO_PIN28
@@ -272,6 +274,12 @@ void gps_testTask(void *pData)
     
 
     UART_Write(UART1,"Init now\r\n",strlen("Init now\r\n"));
+
+    //10 Second Watch Dog
+    Trace(1,"start watchdog with 180 seconds delay");
+    WatchDog_Open(WATCHDOG_SECOND_TO_TICK(180));
+
+
     //wait for gprs register complete
     //The process of GPRS registration network may cause the power supply voltage of GPS to drop,
     //which resulting in GPS restart.
@@ -390,6 +398,14 @@ void gps_testTask(void *pData)
                 {
                     falseGPS = true;
                 }
+                if((latitude-prev_lat == 0.0) && (longitude-prev_long == 0.0))
+                {
+                    motion = false;     //Tracker not moving
+                }
+                else
+                {
+                    motion = true;      // Tracker Moving
+                }
             }
             
             uint8_t status;
@@ -415,8 +431,17 @@ void gps_testTask(void *pData)
             prev_lat = latitude;
             prev_long = longitude;
         }
+
+        WatchDog_KeepAlive();  // Feed  the Watchdog
         PM_SetSysMinFreq(PM_SYS_FREQ_32K);
-        OS_Sleep(2000);
+        if(motion == true)
+        {
+            OS_Sleep(2000); //2 Second Gap
+        }
+        else
+        {
+            OS_Sleep(60000*2);  //2 min gap
+        }
         PM_SetSysMinFreq(PM_SYS_FREQ_178M);
     }
 }
