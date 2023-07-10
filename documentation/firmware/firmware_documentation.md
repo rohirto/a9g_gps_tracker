@@ -26,7 +26,9 @@ A basic blank project can be created and compiled as shown in this tutorial: htt
 3. If debugging and burning not happening then -
    1. Check RX, TX connections
    2. Check the continuty of the wires
-4. Burning and Debugging done through Cooltools - If tracer is not shiwing Debugging messages then stop the tracer and start again
+4. Burning and Debugging done through Cooltools - If tracer is not showing Debugging messages then stop the tracer and start again
+5. I have tried to tinker with RTOS Provied by AI Thinker, but it results in some major issues - no support from Dev Community - This SDK is DEAD now
+6. Thus Copied Demo Code for Basic Framework and Modifying it accordingly
 
 ## Basic Run through
 1. The application can be found in the folder app
@@ -34,6 +36,6 @@ A basic blank project can be created and compiled as shown in this tutorial: htt
 3. Program entry is at "void app_Main()"
 4. In app_Main we create the Maintask and set User Main handle
 5. In Main Task, we first configure Debug Uart (This is different from HSTX and HSTX, ie different from Trace function)
-6. Then in Main Task a second Task is created -> Here we will do the init of basic stuff and then delete the task
-7. Also there is a while(1) loop in Main Task where events are waited for
-8. 
+6. This Main Task in its while(1) loop has a Event Handler - where polling of Events is done
+7. Then in Main Task a second Task is created -> gps Task
+8. In gps Task all our Work is done - read the comments properly there - pretty basic stuff and understandable
