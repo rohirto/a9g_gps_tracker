@@ -29,8 +29,8 @@
  * 
  * 
  */
-#define SERVER_IP   "ss.neucrack.com"
-#define SERVER_PORT  8082
+#define SERVER_IP   "demo3.traccar.org"
+#define SERVER_PORT  5055
 
 #define GPS_NMEA_LOG_FILE_PATH "/t/gps_nmea.log"
 
@@ -91,7 +91,7 @@ void EventDispatch(API_Event_t* pEvent)
             else
             {
                 Network_PDP_Context_t context = {
-                    .apn        ="cmnet",
+                    .apn        ="airtelgprs.com",
                     .userName   = ""    ,
                     .userPasswd = ""
                 };
@@ -102,7 +102,7 @@ void EventDispatch(API_Event_t* pEvent)
         case API_EVENT_ID_NETWORK_ATTACHED:
             Trace(2,"network attach success");
             Network_PDP_Context_t context = {
-                .apn        ="cmnet",
+                .apn        ="airtelgprs.com",
                 .userName   = ""    ,
                 .userPasswd = ""
             };

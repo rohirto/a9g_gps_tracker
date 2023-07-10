@@ -9,7 +9,7 @@
 #include <api_socket.h>
 
 
-#define PDP_CONTEXT_APN       "cmnet"
+#define PDP_CONTEXT_APN       "airtelgprs.com"
 #define PDP_CONTEXT_USERNAME  ""
 #define PDP_CONTEXT_PASSWD    ""
 
