@@ -43,9 +43,16 @@
 static HANDLE gpsTaskHandle = NULL;
 bool isGpsOn = true;
 bool networkFlag = false;
+volatile bool falseGPS = true;
+volatile double prev_lat = 0.0;
+volatile double prev_long = 0.0;
 
 #define SYSTEM_STATUS_LED GPIO_PIN27
 #define UPLOAD_DATA_LED   GPIO_PIN28
+
+//User Defines
+#define LAT_THRESHOLD           10   //Used to root out false readings
+#define LONG_THRESHOLD          10
 
 
 // const uint8_t nmea[]="$GNGGA,000021.263,2228.7216,N,11345.5625,E,0,0,,153.3,M,-3.3,M,,*4E\r\n$GPGSA,A,1,,,,,,,,,,,,,,,*1E\r\n$BDGSA,A,1,,,,,,,,,,,,,,,*0F\r\n$GPGSV,1,1,00*79\r\n$BDGSV,1,1,00*68\r\n$GNRMC,000021.263,V,2228.7216,N,11345.5625,E,0.000,0.00,060180,,,N*5D\r\n$GNVTG,0.00,T,,M,0.000,N,0.000,K,N*2C\r\n";
@@ -372,9 +379,22 @@ void gps_testTask(void *pData)
             UART_Write(UART1,buffer,strlen(buffer));
             snprintf(requestPath,sizeof(buffer2),"/?id=%s&timestamp=%d&lat=%f&lon=%f&speed=%f&bearing=%.1f&altitude=%f&accuracy=%.1f&batt=%.1f",
                                                     buffer,time(NULL),latitude,longitude,isFixed*1.0,0.0,gpsInfo->gga.altitude,0.0,percent*1.0);
+            //Check False GPS
+            if(prev_lat > 0.0 && prev_long > 0.0)
+            {
+                if(((abs(latitude - prev_lat)*1000) < LAT_THRESHOLD)  && ((abs(longitude - prev_long)*1000) < LONG_THRESHOLD))
+                {
+                    falseGPS = false;
+                }
+                else
+                {
+                    falseGPS = true;
+                }
+            }
+            
             uint8_t status;
             Network_GetActiveStatus(&status);
-            if(status && latitude > 0 && longitude > 0)
+            if(status && !falseGPS)
             {
                 GPIO_Set(UPLOAD_DATA_LED,GPIO_LEVEL_HIGH);
                 if(Http_Post(SERVER_IP,SERVER_PORT,requestPath,NULL,0,buffer,sizeof(buffer)) <0 )
@@ -390,6 +410,10 @@ void gps_testTask(void *pData)
             {
                 Trace(1,"no internet");
             }
+
+            //Load the prev variables 
+            prev_lat = latitude;
+            prev_long = longitude;
         }
         PM_SetSysMinFreq(PM_SYS_FREQ_32K);
         OS_Sleep(2000);

@@ -43,6 +43,8 @@
 #define DEBUG_LEVEL             DEBUG_LEVEL_TRACE_UART
 
 
+
+
 /* Func Prototypes */
 void httpGetTask(void*);
 void GpsTask(void *);
