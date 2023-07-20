@@ -56,6 +56,12 @@ volatile bool motion = false;   //Initially motion not there
 #define LAT_THRESHOLD           10   //Used to root out false readings
 #define LONG_THRESHOLD          10
 
+#define TWO_D_FIX               "2D Fix"
+#define THREE_D_FIX             "3D Fix"
+#define DIFF_GPS_FIX            "3D/DGPS fix"
+#define NO_FIX                  "no fix"
+
+
 
 // const uint8_t nmea[]="$GNGGA,000021.263,2228.7216,N,11345.5625,E,0,0,,153.3,M,-3.3,M,,*4E\r\n$GPGSA,A,1,,,,,,,,,,,,,,,*1E\r\n$BDGSA,A,1,,,,,,,,,,,,,,,*0F\r\n$GPGSV,1,1,00*79\r\n$BDGSV,1,1,00*68\r\n$GNRMC,000021.263,V,2228.7216,N,11345.5625,E,0.000,0.00,060180,,,N*5D\r\n$GNVTG,0.00,T,,M,0.000,N,0.000,K,N*2C\r\n";
 
@@ -100,7 +106,7 @@ void EventDispatch(API_Event_t* pEvent)
             else
             {
                 Network_PDP_Context_t context = {
-                    .apn        ="airtelgprs.com",
+                    .apn        ="bsnlnet",  //airtelgprs.com  -> For Airtel    //bsnlnet  -> For BSNL
                     .userName   = ""    ,
                     .userPasswd = ""
                 };
@@ -111,7 +117,7 @@ void EventDispatch(API_Event_t* pEvent)
         case API_EVENT_ID_NETWORK_ATTACHED:
             Trace(2,"network attach success");
             Network_PDP_Context_t context = {
-                .apn        ="airtelgprs.com",
+                .apn        ="bsnlnet",  //airtelgprs.com  -> For Airtel    //bsnlnet  -> For BSNL
                 .userName   = ""    ,
                 .userPasswd = ""
             };
@@ -349,16 +355,16 @@ void gps_testTask(void *pData)
             uint8_t isFixed = gpsInfo->gsa[0].fix_type > gpsInfo->gsa[1].fix_type ?gpsInfo->gsa[0].fix_type:gpsInfo->gsa[1].fix_type;
             char* isFixedStr;            
             if(isFixed == 2)
-                isFixedStr = "2D fix";
+                isFixedStr = TWO_D_FIX;
             else if(isFixed == 3)
             {
                 if(gpsInfo->gga.fix_quality == 1)
-                    isFixedStr = "3D fix";
+                    isFixedStr = THREE_D_FIX;
                 else if(gpsInfo->gga.fix_quality == 2)
-                    isFixedStr = "3D/DGPS fix";
+                    isFixedStr = DIFF_GPS_FIX;
             }
             else
-                isFixedStr = "no fix";
+                isFixedStr = NO_FIX;
 
             //convert unit ddmm.mmmm to degree(°) 
             int temp = (int)(gpsInfo->rmc.latitude.value/gpsInfo->rmc.latitude.scale/100);
@@ -410,11 +416,20 @@ void gps_testTask(void *pData)
             
             uint8_t status;
             Network_GetActiveStatus(&status);
-            if(status && !falseGPS)
+
+
+            //If network internet is there status == 1
+            //If no falseGPS signal received 
+            //If GPS is Fixed (i.e should not be equal to NO_FIX)
+            //Only then send data to HTTP server
+            if(status && !falseGPS && strcmp(isFixedStr,NO_FIX))  
             {
                 GPIO_Set(UPLOAD_DATA_LED,GPIO_LEVEL_HIGH);
                 if(Http_Post(SERVER_IP,SERVER_PORT,requestPath,NULL,0,buffer,sizeof(buffer)) <0 )
+                {
                     Trace(1,"send location to server fail");
+                }
+                    
                 else
                 {
                     Trace(1,"send location to server success");
@@ -424,7 +439,7 @@ void gps_testTask(void *pData)
             }
             else
             {
-                Trace(1,"no internet");
+                Trace(1,"no internet OR False GPS OR No Fix");
             }
 
             //Load the prev variables 
