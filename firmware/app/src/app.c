@@ -1,4 +1,15 @@
 
+/**
+ * @file app.c
+ * @author rohirto
+ * @brief A9G Based GPS Tracking Module - Application layer
+ * @version 0.1
+ * @date 2024-03-13
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "app.h"
 #include "app_accl.h"
 #include "app_gprs.h"
