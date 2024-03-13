@@ -21,6 +21,9 @@
 #include "api_call.h"
 #include "api_sms.h"
 #include "api_hal_i2c.h"
+#include "app_accl.h"
+#include "app_gprs.h"
+#include "app_gps.h"
 
 /**
  * gps tracker, use an open source tracker server traccar:https://www.traccar.org/
@@ -33,10 +36,9 @@
  * 
  * 
  */
-#define SERVER_IP   "demo3.traccar.org"
-#define SERVER_PORT  5055
 
-#define GPS_NMEA_LOG_FILE_PATH "/t/gps_nmea.log"
+
+
 
 
 
@@ -47,11 +49,6 @@
 static HANDLE gpsTaskHandle = NULL;
 
 
-bool isGpsOn = true;
-bool networkFlag = false;
-volatile bool falseGPS = true;
-volatile double prev_lat = 0.0;
-volatile double prev_long = 0.0;
 volatile bool motion = true;   //Taking initial motion true, this logic is needed for Interrupt based restart fucntion
 volatile bool restart_flag = false;
 volatile bool init_done_flag = false;
@@ -99,7 +96,7 @@ volatile bool int_status = false;
 #define USE_TRACE               1
 #define USE_UART                1
 #define USE_VIBRATION_SENSOR    0
-#define USE_MPU_SENSOR          1
+#define USE_MPU_SENSOR          0
 #define USE_CALL                0
 #define USE_SMS                 0
 #define USE_SYS_LED             1
