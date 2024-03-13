@@ -1,9 +1,53 @@
-#ifndef __BLINK_H_
-#define __BLINK_H_
+/**
+ * @file app.h
+ * @author rohirto
+ * @brief Main header file
+ * @version 0.1
+ * @date 2024-03-13
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#ifndef __APP_H_
+#define __APP_H_
 
+//Includes
+#include "api_info.h"
+#include "api_hal_pm.h"
+#include "time.h"
+#include "assert.h"
+#include "api_hal_gpio.h"
+#include "api_hal_watchdog.h"
+#include <api_event.h>
+#include <api_hal_uart.h>
+#include <api_debug.h>
+#include "buffer.h"
+#include "math.h"
+#include <string.h>
+#include <stdio.h>
+#include <api_os.h>
+
+//Custumisation
+#define USE_WATCHDOG            1
+#define USE_TRACE               1
+#define USE_UART                1
+#define USE_VIBRATION_SENSOR    0
+#define USE_MPU_SENSOR          0
+#define USE_CALL                0
+#define USE_SMS                 0
+#define USE_SYS_LED             1
+#define USE_DATA_LED            1
+#define USE_LOW_POW_MODE        0
+#define USE_GPS_FIXED           0
+#define USE_INTERACTIVE_LED     1
+#define USE_BSNL_CONTEXT        1
+#define USE_AIRTEL_CONTEXT      0
 
 #define GPIO_PIN_LED_BLUE   GPIO_PIN27
 #define GPIO_PIN_LED_GREEN  GPIO_PIN28   
+
+#define SYSTEM_STATUS_LED       GPIO_PIN27
+#define UPLOAD_DATA_LED         GPIO_PIN28
 
 
 //GPRS Context
@@ -41,6 +85,23 @@
 #define DEBUG_LEVEL_TRACE_UART  2       //DEbug level high, Trace + UART
 
 #define DEBUG_LEVEL             DEBUG_LEVEL_TRACE_UART
+
+//LED DEFINES
+enum LED_DEFINES{
+    LED_SYS_ON = 0,
+    LED_NO_NETWORK,
+    LED_NO_GPS,
+    LED_NO_FIX
+};
+
+//Externs
+extern volatile bool restart_flag ;
+extern volatile bool init_done_flag ;
+extern volatile bool is_Fixed_flag ;
+extern volatile bool low_pow_mode_flag ;
+extern volatile uint8_t led_status;
+//volatile bool close_interrupt = false;
+extern volatile bool int_status ;
 
 
 
